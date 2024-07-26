@@ -1,2 +1,7 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿if (args.Length == 0) {
+    Console.WriteLine("Usage: FaminiScraper outputDirectory");
+    return;
+}
+
+string baseUrl = Environment.GetEnvironmentVariable("FAMINI_URL") ?? throw new Exception("Define env variable FAMINI_URL");
+string password = Environment.GetEnvironmentVariable("FAMINI_PASSWORD") ?? throw new Exception("Define env variable FAMINI_PASSWORD");
