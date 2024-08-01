@@ -57,23 +57,30 @@ public record Scraper(string BaseURL, string Password, string OutputDirectory) {
 
         var h1s = loggedInDoc.DocumentNode.Descendants("h1").ToList();
         var parentDivs = h1s.Select(h1 => h1.ParentNode).Skip(1).ToList(); // Skip 1 for the general information header
-        var headerDivsWithPictureDivs = new List<KeyValuePair<HtmlNode, List<HtmlNode>>>();
+        var headerDivsWithPictureDivs = new List<PictureDivSection>();
         // associate the header div with the picture divs
         for (int i = 0; i < parentDivs.Count; i += 1)
         {
             var headerDiv = parentDivs[i];
             var stopDiv = i < parentDivs.Count - 1 ? parentDivs[i + 1] : null;
-            var headerDivWithPictureDivs = new KeyValuePair<HtmlNode?, List<HtmlNode>>(headerDiv,
-            new List<HtmlNode>()
-            );
+            var headerDivWithPictureDivs = new PictureDivSection(headerDiv.InnerText.Trim(),
+            new List<HtmlNode>());
             headerDivsWithPictureDivs.Add(headerDivWithPictureDivs);
             var currentDiv = headerDiv.NextSibling;
             while (currentDiv != stopDiv && currentDiv != null)
             {
-                headerDivWithPictureDivs.Value.Add(currentDiv);
+                headerDivWithPictureDivs.PictureDivs.Add(currentDiv);
                 currentDiv = currentDiv.NextSibling;
             }
-            Console.WriteLine(headerDiv.InnerText.Trim() + " - " + headerDivWithPictureDivs.Value.Count);
+        }
+
+        foreach (var headerDivWithPictureDivs in headerDivsWithPictureDivs)
+        {
+            string folderName = Path.Combine(OutputDirectory, headerDivWithPictureDivs.Header);
+            if (!Directory.Exists(folderName))
+            {
+                Directory.CreateDirectory(folderName);
+            }
         }
 
         // var imagesThatWeCanLoad = loggedInDoc.DocumentNode.Descendants("a").Where(a =>
