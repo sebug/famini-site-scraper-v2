@@ -3,7 +3,7 @@ using HtmlAgilityPack;
 
 public record Scraper(string BaseURL, string Password, string OutputDirectory) {
     public async Task Run() {
-        Console.WriteLine($"Scraping images from {BaseURL}");
+        Console.WriteLine($"Scrapping images from {BaseURL}");
 
         var client = new HttpClient() {
             BaseAddress = new Uri(BaseURL)
@@ -55,20 +55,27 @@ public record Scraper(string BaseURL, string Password, string OutputDirectory) {
         var loggedInDoc = new HtmlDocument();
         loggedInDoc.LoadHtml(loggedInContent);
 
-        var imagesThatWeCanLoad = loggedInDoc.DocumentNode.Descendants("a").Where(a =>
-            !String.IsNullOrEmpty(a.GetAttributeValue("data-href", String.Empty))).ToList();
-
-        var imagesToLoad = imagesThatWeCanLoad.Select(link => 
-        EnsureNoTransform(link.GetAttributeValue("data-href", String.Empty))
-        );
-
-        if (!Directory.Exists(OutputDirectory)) {
-            Directory.CreateDirectory(OutputDirectory);
+        var h1s = loggedInDoc.DocumentNode.Descendants("h1").ToList();
+        var parentDivs = h1s.Select(h1 => h1.ParentNode).Skip(1).ToList(); // Skip 1 for the general information header
+        foreach (var parentDiv in parentDivs)
+        {
+            Console.WriteLine(parentDiv.InnerText);
         }
 
-        foreach (var path in imagesToLoad) {
-            await DownloadImage(client, path);
-        }
+        // var imagesThatWeCanLoad = loggedInDoc.DocumentNode.Descendants("a").Where(a =>
+        //     !String.IsNullOrEmpty(a.GetAttributeValue("data-href", String.Empty))).ToList();
+
+        // var imagesToLoad = imagesThatWeCanLoad.Select(link => 
+        // EnsureNoTransform(link.GetAttributeValue("data-href", String.Empty))
+        // );
+
+        // if (!Directory.Exists(OutputDirectory)) {
+        //     Directory.CreateDirectory(OutputDirectory);
+        // }
+
+        // foreach (var path in imagesToLoad) {
+        //     await DownloadImage(client, path);
+        // }
     }
 
     private string EnsureNoTransform(string path) {
