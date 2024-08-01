@@ -81,14 +81,20 @@ public record Scraper(string BaseURL, string Password, string OutputDirectory) {
             {
                 Directory.CreateDirectory(folderName);
             }
+            var imagesThatWeCanLoad = headerDivWithPictureDivs
+            .PictureDivs.SelectMany(div => div.Descendants("a").Where(a =>
+                !String.IsNullOrEmpty(a.GetAttributeValue("data-href", String.Empty)))).ToList();
+            
+            var imagesToLoad = imagesThatWeCanLoad.Select(link => 
+                EnsureNoTransform(link.GetAttributeValue("data-href", String.Empty))
+                ).ToList();
+            Console.WriteLine("Download " + imagesToLoad.Count + " images for header " + 
+            headerDivWithPictureDivs.Header);
         }
 
-        // var imagesThatWeCanLoad = loggedInDoc.DocumentNode.Descendants("a").Where(a =>
-        //     !String.IsNullOrEmpty(a.GetAttributeValue("data-href", String.Empty))).ToList();
 
-        // var imagesToLoad = imagesThatWeCanLoad.Select(link => 
-        // EnsureNoTransform(link.GetAttributeValue("data-href", String.Empty))
-        // );
+
+
 
         // if (!Directory.Exists(OutputDirectory)) {
         //     Directory.CreateDirectory(OutputDirectory);
