@@ -90,6 +90,16 @@ public record Scraper(string BaseURL, string Password, string OutputDirectory) {
                 ).ToList();
             Console.WriteLine("Download " + imagesToLoad.Count + " images for header " + 
             headerDivWithPictureDivs.Header);
+
+            int i = 0;
+            foreach (var image in imagesToLoad)
+            {
+                string fileName = image.Substring(image.LastIndexOf("/") + 1);
+                string extension = Path.GetExtension(fileName);
+                fileName = $"image_{i:D3}" + extension;
+                await DownloadImage(client, image, Path.Combine(folderName, fileName));
+                i += 1;
+            }
         }
 
 
@@ -119,27 +129,12 @@ public record Scraper(string BaseURL, string Password, string OutputDirectory) {
 
     private Regex _fNameRegex = new Regex("https://(?<cdnPath>[^/]+).*image/(?<imageName>[^/]+)/version/(?<versionName>[^/]+)");
 
-    private string NiceFileName(string path) {
-        var m = _fNameRegex.Match(path);
-        if (!m.Success) {
-            throw new Exception("Couldn't match " + path);
-        }
-        string fileName = m.Groups["imageName"].Value + "_" + m.Groups["versionName"].Value + ".jpg";
-        return fileName;
-    }
-
-    private async Task DownloadImage(HttpClient client, string path) {
-        var content = await client.GetAsync(path);
-
-        string outputPath = Path.Combine(OutputDirectory, NiceFileName(path));
-
-        if (File.Exists(outputPath)) {
-            File.Delete(outputPath);
-        }
+    private async Task DownloadImage(HttpClient client, string url, string filePath) {
+        var content = await client.GetAsync(url);
 
         var outputStream = await content.Content.ReadAsStreamAsync();
 
-        using (var fs = File.Create(outputPath)) {
+        using (var fs = File.Create(filePath)) {
             await outputStream.CopyToAsync(fs);
         }
     }
