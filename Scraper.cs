@@ -57,9 +57,23 @@ public record Scraper(string BaseURL, string Password, string OutputDirectory) {
 
         var h1s = loggedInDoc.DocumentNode.Descendants("h1").ToList();
         var parentDivs = h1s.Select(h1 => h1.ParentNode).Skip(1).ToList(); // Skip 1 for the general information header
-        foreach (var parentDiv in parentDivs)
+        var headerDivsWithPictureDivs = new List<KeyValuePair<HtmlNode, List<HtmlNode>>>();
+        // associate the header div with the picture divs
+        for (int i = 0; i < parentDivs.Count; i += 1)
         {
-            Console.WriteLine(parentDiv.InnerText);
+            var headerDiv = parentDivs[i];
+            var stopDiv = i < parentDivs.Count - 1 ? parentDivs[i + 1] : null;
+            var headerDivWithPictureDivs = new KeyValuePair<HtmlNode?, List<HtmlNode>>(headerDiv,
+            new List<HtmlNode>()
+            );
+            headerDivsWithPictureDivs.Add(headerDivWithPictureDivs);
+            var currentDiv = headerDiv.NextSibling;
+            while (currentDiv != stopDiv && currentDiv != null)
+            {
+                headerDivWithPictureDivs.Value.Add(currentDiv);
+                currentDiv = currentDiv.NextSibling;
+            }
+            Console.WriteLine(headerDiv.InnerText.Trim() + " - " + headerDivWithPictureDivs.Value.Count);
         }
 
         // var imagesThatWeCanLoad = loggedInDoc.DocumentNode.Descendants("a").Where(a =>
